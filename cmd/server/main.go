@@ -9,15 +9,14 @@ import (
 	"syscall"
 	"time"
 
-	// need to initialize pgxpool before any other pgx imports to avoid issues with multiple versions
-	// open.ai import llm and llm import pgxpool, so we need to ensure pgxpool is initialized first
+	// open.ai - llm imported pgxpool, pgxpool is initialized
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/pixell07/multi-tenant-ai/internal/api"
 	"github.com/pixell07/multi-tenant-ai/internal/auth"
 	"github.com/pixell07/multi-tenant-ai/internal/document"
 	"github.com/pixell07/multi-tenant-ai/internal/embedding"
-	"github.com/pixell07/multi-tenant-ai/internal/llm" // to fix circular import with retrieval
+	"github.com/pixell07/multi-tenant-ai/internal/llm" // fixed circular import
 	"github.com/pixell07/multi-tenant-ai/internal/retrieval"
 	"github.com/pixell07/multi-tenant-ai/internal/tenant"
 )
