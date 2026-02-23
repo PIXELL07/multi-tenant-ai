@@ -64,7 +64,7 @@ func main() {
 	// Wire remaining dependencies
 	tenantRepo := tenant.NewRepository(pool)
 	docRepo := document.NewRepository(pool)
-	llmClient := llm.NewOpenAIClient(cfg.OpenAIKey, cfg.LLMModel)
+	llmClient := llm.NewOpenAIClient(cfg.OpenAIKey, cfg.LLMModel) // to be fixed with circular import
 	jwtManager := auth.NewJWTManager(cfg.JWTSecret, cfg.JWTExpiry)
 
 	tenantSvc := tenant.NewService(tenantRepo, jwtManager)
