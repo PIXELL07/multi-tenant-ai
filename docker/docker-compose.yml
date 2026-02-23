@@ -1,0 +1,42 @@
+version: "3.9"
+
+services:
+  # PostgreSQL + pgvector
+  db:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ragdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d  # auto-runs *.sql on first boot
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ragdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # RAG API server
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: postgres://postgres:password@db:5432/ragdb
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      JWT_SECRET: ${JWT_SECRET:-supersecretchangeme}
+      LLM_MODEL: gpt-4o-mini
+      LISTEN_ADDR: :8080
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
