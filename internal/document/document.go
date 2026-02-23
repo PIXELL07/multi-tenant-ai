@@ -89,6 +89,14 @@ func (r *Repository) Delete(ctx context.Context, id, orgID string) error {
 	return err
 }
 
+// LangChain Text Splitting
+// langchaingo's textsplitter.RecursiveCharacter splits text by trying a list of
+// separators in order (\n\n → \n → space → character), which produces much more
+// natural chunk boundaries than a naive word-count window.
+//
+// textsplitter.CreateDocuments attaches metadata to each chunk so we can carry
+// org_id and document_id through the pipeline as langchaingo schema.Documents.
+
 func splitDocument(doc *Document) ([]schema.Document, error) {
 	splitter := textsplitter.NewRecursiveCharacter(
 		textsplitter.WithChunkSize(512),
