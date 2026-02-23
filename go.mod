@@ -8,6 +8,8 @@ require (
 	github.com/tmc/langchaingo v0.1.14
 )
 
+require github.com/pgvector/pgvector-go v0.1.1 // indirect
+
 require (
 	github.com/dlclark/regexp2 v1.10.0 // indirect
 	github.com/golang-jwt/jwt/v5 v5.3.1
