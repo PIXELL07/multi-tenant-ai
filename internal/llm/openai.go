@@ -46,3 +46,16 @@ func (c *OpenAIClient) StreamCompletion(ctx context.Context, systemPrompt, userM
 		Stream: true,
 	})
 	
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, openAIChatURL, bytes.NewReader(body))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Authorization", "Bearer "+c.apiKey)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "text/event-stream")
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return err
+	}
