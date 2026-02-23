@@ -51,7 +51,7 @@ func (c *OpenAIClient) StreamCompletion(ctx context.Context, systemPrompt, userM
 		},
 		Stream: true,
 	})
-	
+
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, openAIChatURL, bytes.NewReader(body))
 	if err != nil {
 		return err
@@ -65,3 +65,43 @@ func (c *OpenAIClient) StreamCompletion(ctx context.Context, systemPrompt, userM
 	if err != nil {
 		return err
 	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("openai returned status %d", resp.StatusCode)
+	}
+
+	// Parse SSE stream: each line is "data: <json>" or "data: [DONE]"
+	scanner := bufio.NewScanner(resp.Body)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if !strings.HasPrefix(line, "data: ") {
+			continue
+		}
+		data := strings.TrimPrefix(line, "data: ")
+		if data == "[DONE]" {
+			break
+		}
+
+		var chunk struct {
+			Choices []struct {
+				Delta struct {
+					Content string `json:"content"`
+				} `json:"delta"`
+			} `json:"choices"`
+		}
+		if err := json.Unmarshal([]byte(data), &chunk); err != nil {
+			continue
+		}
+		if len(chunk.Choices) > 0 && chunk.Choices[0].Delta.Content != "" {
+			select {
+			case out <- chunk.Choices[0].Delta.Content:
+			case <-ctx.Done():
+				return ctx.Err()
+			}
+		}
+	}
+
+	return scanner.Err()
+}
